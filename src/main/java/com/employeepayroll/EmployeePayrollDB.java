@@ -143,11 +143,12 @@ public class EmployeePayrollDB {
 	 * @throws DatabaseException
 	 */
 	public List<Employee> getEmployeeForDateRange(LocalDate start, LocalDate end) throws DatabaseException {
-		String sql = String.format("Select * from employee_payroll_service where start between '%s' and '%s' ;",Date.valueOf(start), Date.valueOf(end));
+		String sql = String.format("Select * from employee_payroll_service where start between '%s' and '%s' ;",
+                                   Date.valueOf(start), Date.valueOf(end));
 		return this.getEmployeePayrollDataUsingDB(sql);
-		
+
 	}
-	
+
 	private List<Employee> getEmployeePayrollDataUsingDB(String sql) throws DatabaseException {
 		List<Employee> employeeData = new ArrayList<>();
 		try (Connection connection = this.getConnection();) {
@@ -161,17 +162,19 @@ public class EmployeePayrollDB {
 	}
 
 	/**
-	 * Usecase6: performing Aggregate functions query on the employee table 
+	 * Usecase6: performing Aggregate functions query on the employee table
+	 * 
 	 * @param function
 	 * @return
 	 * @throws DatabaseException
 	 */
-	public Map<String, Double> getEmployeesByFunction(String function) throws DatabaseException   {
+	public Map<String, Double> getEmployeesByFunction(String function) throws DatabaseException {
 		Map<String, Double> aggregateFunctionMap = new HashMap<>();
-		String sql = String.format("Select gender, %s(salary) from employee_payroll_service group by gender ; ", function);
+		String sql = String.format("Select gender, %s(salary) from employee_payroll_service group by gender ; ",
+                                  function);
 		try (Connection connection = this.getConnection()) {
 			Statement statement = (Statement) connection.createStatement();
-			ResultSet resultSet = statement.executeQuery(sql); 
+			ResultSet resultSet = statement.executeQuery(sql);
 			while (resultSet.next()) {
 				String gender = resultSet.getString(1);
 				Double salary = resultSet.getDouble(2);
@@ -182,4 +185,56 @@ public class EmployeePayrollDB {
 		}
 		return aggregateFunctionMap;
 	}
+
+	/**
+	 * Usecase7: Inserting new employee into the table using JDBC transaction
+	 * Usecase8: Inserting employee data in employee as well as payroll table
+	 * 
+	 * @param name
+	 * @param gender
+	 * @param salary
+	 * @param start
+	 * @return
+	 * @throws SQLException
+	 * @throws DatabaseException
+	 */
+	public Employee addEmployeeToPayroll(String name, String gender, double salary, LocalDate start)
+                                        throws SQLException, DatabaseException {
+		int employeeId = -1;
+		Connection connection = null;
+		Employee employee = null;
+		try {
+			connection = this.getConnection();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		try (Statement statement = connection.createStatement()) {
+			String sql = String.format("INSERT INTO employee_payroll_service (name, gender, salary, start) "
+                                      + "VALUES ('%s','%s','%s','%s')", name, gender, salary, Date.valueOf(start));
+			int rowAffected = statement.executeUpdate(sql, statement.RETURN_GENERATED_KEYS);
+			if (rowAffected == 1) {
+				ResultSet resultSet = statement.getGeneratedKeys();
+				if (resultSet.next())
+					employeeId = resultSet.getInt(1);
+			}
+		} catch (SQLException e) {
+			throw new DatabaseException("Unable to add new employee");
+		}
+		try (Statement statement = connection.createStatement()) {
+			double deductions = salary * 0.2;
+			double taxable_pay = salary - deductions;
+			double tax = taxable_pay * 0.1;
+			double netPay = salary - tax;
+			String sql = String.format("INSERT INTO payroll_details (employee_id, basic_pay, deductions, taxable_pay, tax, net_pay) "
+			                           + "VALUES ('%s','%s','%s','%s','%s','%s')",employeeId, salary, deductions, taxable_pay, tax, netPay);
+			int rowAffected = statement.executeUpdate(sql);
+			if (rowAffected == 1) {
+				employee = new Employee(employeeId, name, salary, start, gender);
+			}
+		} catch (SQLException e) {
+			throw new DatabaseException("Unable to add payroll details of  employee");
+		}
+		return employee;
+	}
+
 }
