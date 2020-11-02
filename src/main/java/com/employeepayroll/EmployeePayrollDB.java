@@ -1,6 +1,7 @@
 package com.employeepayroll;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -97,13 +98,18 @@ public class EmployeePayrollDB {
 			employeeStatement.setString(1, name);
 			ResultSet resultSet = employeeStatement.executeQuery();
 			employeePayrollList = this.getEmployeePayrollData(resultSet);
-		}
-		catch(Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return employeePayrollList;
 	}
 
+	/**
+	 * Usecase4: Refactored the result set
+	 * 
+	 * @param resultSet
+	 * @return
+	 */
 	private List<Employee> getEmployeePayrollData(ResultSet resultSet) {
 		List<Employee> employeePayrollList = new ArrayList<>();
 		try {
@@ -114,13 +120,15 @@ public class EmployeePayrollDB {
 				LocalDate start = resultSet.getDate("start").toLocalDate();
 				employeePayrollList.add(new Employee(id, name, salary, start));
 			}
-		}
-		catch(SQLException e) {
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		return employeePayrollList;
 	}
 
+	/**
+	 * Usecase4: Prepared Statement for the payroll database
+	 */
 	private void preparedStatementForEmployeeData() {
 		try {
 			Connection connection = this.getConnection();
@@ -129,5 +137,27 @@ public class EmployeePayrollDB {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+	}
+
+	/**
+	 * Usecase5: Implementing query to find employees joined between the particular
+	 * dates
+	 * 
+	 * @param start
+	 * @param end
+	 * @return
+	 * @throws DatabaseException
+	 */
+	public int getEmployeeForDateRange(LocalDate start, LocalDate end) throws DatabaseException {
+		String sql = String.format("Select * from employee_payroll_service where start between '%s' and '%s' ;",Date.valueOf(start), Date.valueOf(end));
+		List<Employee> employeeData = new ArrayList<>();
+		try (Connection connection = this.getConnection();) {
+			Statement statement = connection.createStatement();
+			ResultSet resultSet = statement.executeQuery(sql);
+			employeeData = this.getEmployeePayrollData(resultSet);
+		} catch (Exception exception) {
+			throw new DatabaseException("Unable to execute query");
+		}
+		return employeeData.size();
 	}
 }
