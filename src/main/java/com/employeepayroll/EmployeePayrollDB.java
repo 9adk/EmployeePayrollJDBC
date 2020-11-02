@@ -205,6 +205,7 @@ public class EmployeePayrollDB {
 		Employee employee = null;
 		try {
 			connection = this.getConnection();
+			connection.setAutoCommit(false);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -218,6 +219,12 @@ public class EmployeePayrollDB {
 					employeeId = resultSet.getInt(1);
 			}
 		} catch (SQLException e) {
+			try{
+				connection.rollback();
+			}
+			catch(SQLException exception) {
+				exception.printStackTrace();
+				}			
 			throw new DatabaseException("Unable to add new employee");
 		}
 		try (Statement statement = connection.createStatement()) {
@@ -232,7 +239,24 @@ public class EmployeePayrollDB {
 				employee = new Employee(employeeId, name, salary, start, gender);
 			}
 		} catch (SQLException e) {
+			try{
+				connection.rollback();
+			}
+			catch(SQLException exception) {
+				exception.printStackTrace();
+			}
 			throw new DatabaseException("Unable to add payroll details of  employee");
+		}
+		try {
+			connection.commit();
+		}
+		catch(SQLException e) {
+			e.printStackTrace();
+		}
+		finally {
+			if(connection != null) {
+				connection.close();
+			}
 		}
 		return employee;
 	}
