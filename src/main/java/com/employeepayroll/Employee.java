@@ -10,7 +10,6 @@ public class Employee {
 	private LocalDate start;
 
 	public Employee(int id, String name, double salary) {
-		super();
 		this.name = name;
 		this.id = id;
 		this.salary = salary;
