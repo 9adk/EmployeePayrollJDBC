@@ -11,12 +11,15 @@ public class EmployeePayrollService {
 	};
 
 	private List<Employee> employeeList;
+	private EmployeePayrollDB employeePayrollDB;
 
 	public EmployeePayrollService(List<Employee> list) {
+		this();
 		this.employeeList = list;
 	}
 
 	public EmployeePayrollService() {
+		employeePayrollDB = EmployeePayrollDB.getInstance();
 	}
 
 	public static void main(String[] args) {
@@ -82,11 +85,11 @@ public class EmployeePayrollService {
 	 * @param ioService
 	 * @return
 	 * @throws SQLException
-	 * @throws DatabaseException 
+	 * @throws DatabaseException
 	 */
 	public List<Employee> readEmployeePayrollDBData(IOService ioService) throws DatabaseException {
 		if (ioService.equals(IOService.DB_IO)) {
-			this.employeeList = new EmployeePayrollDB().readData();
+			this.employeeList = employeePayrollDB.readData();
 		}
 		return this.employeeList;
 	}
@@ -96,10 +99,10 @@ public class EmployeePayrollService {
 	 * 
 	 * @param name
 	 * @param salary
-	 * @throws DatabaseException 
+	 * @throws DatabaseException
 	 */
 	public void updateEmployeeSalary(String name, double salary) throws DatabaseException {
-		int result = new EmployeePayrollDB().updateEmployeeData(name, salary);
+		int result = employeePayrollDB.updateEmployeeData(name, salary);
 		if (result == 0)
 			return;
 		Employee employee = this.getEmployee(name);
@@ -113,8 +116,9 @@ public class EmployeePayrollService {
 		return employee;
 	}
 
-	public boolean checkEmployeeDataSync(String name) throws SQLException, DatabaseException {
-		List<Employee> employeeList = new EmployeePayrollDB().getEmployeeData(name);
+	public boolean checkEmployeeDataSync(String name) {
+		List<Employee> employeeList = employeePayrollDB.getEmployeePayrollData(name);
 		return employeeList.get(0).equals(getEmployee(name));
 	}
+
 }
