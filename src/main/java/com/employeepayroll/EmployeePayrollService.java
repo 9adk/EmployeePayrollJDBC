@@ -82,11 +82,39 @@ public class EmployeePayrollService {
 	 * @param ioService
 	 * @return
 	 * @throws SQLException
+	 * @throws DatabaseException 
 	 */
-	public List<Employee> readEmployeePayrollDBData(IOService ioService) throws SQLException {
+	public List<Employee> readEmployeePayrollDBData(IOService ioService) throws DatabaseException {
 		if (ioService.equals(IOService.DB_IO)) {
 			this.employeeList = new EmployeePayrollDB().readData();
 		}
 		return this.employeeList;
+	}
+
+	/**
+	 * Usecase3: Updating data in the table for "Deepika"
+	 * 
+	 * @param name
+	 * @param salary
+	 * @throws DatabaseException 
+	 */
+	public void updateEmployeeSalary(String name, double salary) throws DatabaseException {
+		int result = new EmployeePayrollDB().updateEmployeeData(name, salary);
+		if (result == 0)
+			return;
+		Employee employee = this.getEmployee(name);
+		if (employee != null)
+			employee.salary = salary;
+	}
+
+	private Employee getEmployee(String name) {
+		Employee employee = this.employeeList.stream().filter(employeeData -> employeeData.name.equals(name))
+				.findFirst().orElse(null);
+		return employee;
+	}
+
+	public boolean checkEmployeeDataSync(String name) throws SQLException, DatabaseException {
+		List<Employee> employeeList = new EmployeePayrollDB().getEmployeeData(name);
+		return employeeList.get(0).equals(getEmployee(name));
 	}
 }
