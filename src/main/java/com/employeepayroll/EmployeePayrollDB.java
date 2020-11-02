@@ -52,15 +52,7 @@ public class EmployeePayrollDB {
 	 */
 	public List<Employee> readData() throws DatabaseException {
 		String sql = "Select * from employee_payroll_service; ";
-		List<Employee> employeeData = new ArrayList<>();
-		try (Connection connection = this.getConnection();) {
-			Statement statement = connection.createStatement();
-			ResultSet resultSet = statement.executeQuery(sql);
-			employeeData = this.getEmployeePayrollData(resultSet);
-		} catch (Exception exception) {
-			throw new DatabaseException("Unable to execute query");
-		}
-		return employeeData;
+		return this.getEmployeePayrollDataUsingDB(sql);
 	}
 
 	/**
@@ -150,19 +142,24 @@ public class EmployeePayrollDB {
 	 * @return
 	 * @throws DatabaseException
 	 */
-	public int getEmployeeForDateRange(LocalDate start, LocalDate end) throws DatabaseException {
+	public List<Employee> getEmployeeForDateRange(LocalDate start, LocalDate end) throws DatabaseException {
 		String sql = String.format("Select * from employee_payroll_service where start between '%s' and '%s' ;",Date.valueOf(start), Date.valueOf(end));
+		return this.getEmployeePayrollDataUsingDB(sql);
+		
+	}
+	
+	private List<Employee> getEmployeePayrollDataUsingDB(String sql) throws DatabaseException {
 		List<Employee> employeeData = new ArrayList<>();
 		try (Connection connection = this.getConnection();) {
 			Statement statement = connection.createStatement();
 			ResultSet resultSet = statement.executeQuery(sql);
 			employeeData = this.getEmployeePayrollData(resultSet);
-		} catch (Exception exception) {
-			throw new DatabaseException("Unable to execute query");
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-		return employeeData.size();
+		return employeeData;
 	}
-	
+
 	/**
 	 * Usecase6: performing Aggregate functions query on the employee table 
 	 * @param function
