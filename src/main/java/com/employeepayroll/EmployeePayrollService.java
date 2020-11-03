@@ -149,4 +149,10 @@ public class EmployeePayrollService {
 		this.employeeList.add(employeePayrollDB.addEmployeeToPayroll(name, gender, salary, start));
 	}
 
+	public List<Employee> deleteEmployee(String name) throws DatabaseException {
+		 employeePayrollDB.deleteEmployee(name);
+		 return readEmployeePayrollDBData(IOService.DB_IO);
+		
+	}
+
 }
