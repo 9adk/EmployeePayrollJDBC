@@ -29,7 +29,7 @@ public class EmployeePayrollDB {
 		return employeePayrollDB;
 	}
 
-	private Connection getConnection() throws SQLException {
+	private Connection getConnection() throws DatabaseException {
 		String jdbcURL = "jdbc:mysql://localhost:3306/employee_payroll_service?useSSL=false";
 		String userName = "root";
 		String password = "Jan1998ad";
@@ -38,7 +38,7 @@ public class EmployeePayrollDB {
 			Class.forName("com.mysql.jdbc.Driver");
 			connection = DriverManager.getConnection(jdbcURL, userName, password);
 		} catch (Exception e) {
-			throw new SQLException("Connection was unsuccessful");
+			throw new DatabaseException("Connection was unsuccessful");
 		}
 		return connection;
 
@@ -85,7 +85,7 @@ public class EmployeePayrollDB {
 		return this.updateEmployeeUsingStatement(name, salary);
 	}
 
-	public List<Employee> getEmployeePayrollData(String name) {
+	public List<Employee> getEmployeePayrollData(String name) throws DatabaseException {
 		List<Employee> employeePayrollList = null;
 		if (this.employeeStatement == null)
 			this.preparedStatementForEmployeeData();
@@ -123,8 +123,10 @@ public class EmployeePayrollDB {
 
 	/**
 	 * Usecase4: Prepared Statement for the payroll database
+	 * 
+	 * @throws DatabaseException
 	 */
-	private void preparedStatementForEmployeeData() {
+	private void preparedStatementForEmployeeData() throws DatabaseException {
 		try {
 			Connection connection = this.getConnection();
 			String sql = "SELECT * FROM employee_payroll_service WHERE name = ?";
@@ -200,7 +202,7 @@ public class EmployeePayrollDB {
 	 * @throws DatabaseException
 	 */
 	public Employee addEmployeeToPayroll(String name, String gender, double salary, LocalDate start)
-			throws SQLException, DatabaseException {
+			throws DatabaseException {
 		int employeeId = -1;
 		Connection connection = null;
 		Employee employee = null;
@@ -254,7 +256,11 @@ public class EmployeePayrollDB {
 			e.printStackTrace();
 		} finally {
 			if (connection != null) {
-				connection.close();
+				try {
+					connection.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 		return employee;
@@ -277,4 +283,32 @@ public class EmployeePayrollDB {
 		}
 	}
 
+	/**
+	 * Usecase9: Adding the employee to the given department
+	 * 
+	 * @param name
+	 * @param gender
+	 * @param salary
+	 * @param start
+	 * @param department
+	 * @return
+	 * @throws DatabaseException
+	 */
+	public Employee addEmployeeToDepartment(String name, String gender, double salary, LocalDate start,
+			String department) throws DatabaseException {
+		Employee employee = addEmployeeToPayroll(name, gender, salary, start);
+		String sql = String.format(
+				"INSERT INTO department (employee_id,department_id, department_name) " + "VALUES ('%s','%s','%s')",
+				employee.id, 1, department);
+		try (Connection connection = this.getConnection()) {
+			Statement statement = connection.createStatement();
+			int rowAffected = statement.executeUpdate(sql);
+			if (rowAffected == 1) {
+				employee = new Employee(employee.id, name, salary, gender, start, department);
+			}
+		} catch (SQLException e) {
+			throw new DatabaseException("Unable to add department details of  employee");
+		}
+		return employee;
+	}
 }

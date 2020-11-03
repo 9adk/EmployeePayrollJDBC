@@ -117,7 +117,7 @@ public class EmployeePayrollService {
 		return employee;
 	}
 
-	public boolean checkEmployeeDataSync(String name) {
+	public boolean checkEmployeeDataSync(String name) throws DatabaseException {
 		List<Employee> employeeList = employeePayrollDB.getEmployeePayrollData(name);
 		return employeeList.get(0).equals(getEmployee(name));
 	}
@@ -153,6 +153,10 @@ public class EmployeePayrollService {
 		 employeePayrollDB.deleteEmployee(name);
 		 return readEmployeePayrollDBData(IOService.DB_IO);
 		
+	}
+
+	public void addEmployeeToDepartment(String name, String gender, double salary, LocalDate start, String department) throws SQLException, DatabaseException {
+		this.employeeList.add(employeePayrollDB. addEmployeeToDepartment(name, gender, salary, start, department));
 	}
 
 }

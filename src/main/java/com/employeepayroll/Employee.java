@@ -7,6 +7,7 @@ public class Employee {
 	public int id;
 	public double salary;
 	public String gender;
+	public String department;
 	private LocalDate start;
 
 	public Employee(int id, String name, double salary) {
@@ -24,6 +25,11 @@ public class Employee {
 		this.gender = gender;
 	}
 	
+	public Employee(int id, String name, double salary, String gender, LocalDate start,String department) {
+		this(id, name, salary, start, gender);
+		this.department = department;
+	}
+
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
