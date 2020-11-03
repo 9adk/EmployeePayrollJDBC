@@ -22,7 +22,7 @@ public class EmployeeServiceTest {
 	public void givenEmployeePayrollInDB_WhenRetrieved_ShouldMatchEmployeeCount() throws DatabaseException {
 		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
 		List<Employee> employeePayrollData = employeePayrollService.readEmployeePayrollDBData(IOService.DB_IO);
-		assertEquals(4, employeePayrollData.size());
+		assertEquals(2, employeePayrollData.size());
 	}
 
 	/**
@@ -50,9 +50,9 @@ public class EmployeeServiceTest {
 	public void givenEmployeePayrollInDB_WhenRetrievedForDateRange_ShouldMatchEmployeeCount() throws DatabaseException {
 		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
 		List<Employee> employeePayrollData = employeePayrollService.readEmployeePayrollDBData(IOService.DB_IO);
-		List<Employee> resultList = employeePayrollService.getEmployeeForDateRange(LocalDate.of(2019, 01, 01),
-				LocalDate.of(2020, 01, 01));
-		assertEquals(3, resultList.size());
+		List<Employee> resultList = employeePayrollService.getEmployeeForDateRange(LocalDate.of(2020, 01, 01),
+				LocalDate.of(2021, 01, 01));
+		assertEquals(2, resultList.size());
 	}
 
 	/**
@@ -151,8 +151,8 @@ public class EmployeeServiceTest {
 	public void givenNewEmployee_WhenAddedToPayroll_ShouldBeAddedToDepartment() throws SQLException, DatabaseException {
 		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
 		employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
-		employeePayrollService.addEmployeeToDepartment("James", "M", 5000000.0, LocalDate.now(), "Sales");
-		boolean result = employeePayrollService.checkEmployeeDataSync("James");
+		employeePayrollService.addEmployeeToDepartment("Mark", "M", 5000000.0, LocalDate.now(), "Sales");
+		boolean result = employeePayrollService.checkEmployeeDataSync("Mark");
 		assertEquals(true, result);
 	}
 }

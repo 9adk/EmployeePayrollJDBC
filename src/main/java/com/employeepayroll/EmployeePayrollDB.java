@@ -45,15 +45,16 @@ public class EmployeePayrollDB {
 	}
 
 	/**
-	 * Usecase2: Reading data from the employee_payroll_service
+	 * Usecase2,Usecase10: Reading data from the employee_payroll_service
 	 * 
 	 * @return
 	 * @throws SQLException
 	 * @throws DatabaseException
 	 */
 	public List<Employee> readData() throws DatabaseException {
-		String sql = "Select * from employee_payroll_service; ";
-		return this.getEmployeePayrollDataUsingDB(sql);
+		String sql = "Select id,name,gender,salary,start,department.department_name from employee_payroll_service "
+                   + "inner join department on employee_payroll_service.id = department.employee_id; ";
+		return this.getEmployeePayrollAndDeparmentData(sql);
 	}
 
 	/**
@@ -137,7 +138,7 @@ public class EmployeePayrollDB {
 	}
 
 	/**
-	 * Usecase5: Implementing query to find employees joined between the particular
+	 * Usecase5,Usecase10: Implementing query to find employees joined between the particular 
 	 * dates
 	 * 
 	 * @param start
@@ -145,11 +146,35 @@ public class EmployeePayrollDB {
 	 * @return
 	 * @throws DatabaseException
 	 */
-	public List<Employee> getEmployeeForDateRange(LocalDate start, LocalDate end) throws DatabaseException {
-		String sql = String.format("Select * from employee_payroll_service where start between '%s' and '%s' ;",
-				Date.valueOf(start), Date.valueOf(end));
-		return this.getEmployeePayrollDataUsingDB(sql);
+	public List<Employee> getEmployeeForDateRange(LocalDate startDate, LocalDate end) throws DatabaseException {
+		String sql = String.format("Select id,name,gender,salary,start,department.department_name from employee_payroll_service "
+                                  + "inner join department on employee_payroll_service.id = department.employee_id where start between '%s' and '%s' ;",
+                                  Date.valueOf(startDate), Date.valueOf(end));
+		return this.getEmployeePayrollAndDeparmentData(sql);
+	}
 
+	/**Usecase10: to work according to new table structure
+	 * @param sql
+	 * @return
+	 * @throws DatabaseException
+	 */
+	private List<Employee> getEmployeePayrollAndDeparmentData(String sql) throws DatabaseException {
+		List<Employee> employeePayrollList = new ArrayList<>();
+		try (Connection connection = this.getConnection()) {
+			Statement statement = connection.createStatement();
+			ResultSet resultSet = statement.executeQuery(sql);
+			while (resultSet.next()) {
+				int id = resultSet.getInt("id");
+				String name = resultSet.getString("name");
+				double salary = resultSet.getDouble("salary");
+				LocalDate start = resultSet.getDate("start").toLocalDate();
+				String department = resultSet.getString("department_name");
+				employeePayrollList.add(new Employee(id, name, salary, start,department));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return employeePayrollList;		
 	}
 
 	private List<Employee> getEmployeePayrollDataUsingDB(String sql) throws DatabaseException {
