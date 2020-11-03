@@ -213,21 +213,17 @@ public class EmployeePayrollDB {
 		}
 		return aggregateFunctionMap;
 	}
+	
+	
 
 	/**
 	 * Usecase7: Inserting new employee into the table using JDBC transaction
 	 * Usecase8: Inserting employee data in employee as well as payroll table
-	 * 
-	 * @param name
-	 * @param gender
-	 * @param salary
-	 * @param start
-	 * @return
-	 * @throws SQLException
-	 * @throws DatabaseException
+	 * Usecase9: Adding the employee to the given department
+	 * Usecase11: Making all insertion as a single transaction
 	 */
-	public Employee addEmployeeToPayroll(String name, String gender, double salary, LocalDate start)
-			throws DatabaseException {
+	 public Employee addEmployeeToPayrollAndDepartment(String name, String gender, double salary, LocalDate start,String department)
+			throws SQLException, DatabaseException {
 		int employeeId = -1;
 		Connection connection = null;
 		Employee employee = null;
@@ -263,10 +259,7 @@ public class EmployeePayrollDB {
 					"INSERT INTO payroll_details (employee_id, basic_pay, deductions, taxable_pay, tax, net_pay) "
 							+ "VALUES ('%s','%s','%s','%s','%s','%s')",
 					employeeId, salary, deductions, taxable_pay, tax, netPay);
-			int rowAffected = statement.executeUpdate(sql);
-			if (rowAffected == 1) {
-				employee = new Employee(employeeId, name, salary, start, gender);
-			}
+			statement.executeUpdate(sql);
 		} catch (SQLException e) {
 			try {
 				connection.rollback();
@@ -275,23 +268,35 @@ public class EmployeePayrollDB {
 			}
 			throw new DatabaseException("Unable to add payroll details of  employee");
 		}
+		try (Statement statement = connection.createStatement()) {
+			String sql = String.format(
+					"INSERT INTO department (employee_id,department_id, department_name) "
+							+ "VALUES ('%s','%s','%s')",
+					employeeId,1, department);
+			int rowAffected = statement.executeUpdate(sql);
+			if(rowAffected == 1) {
+				employee = new Employee(employeeId,name, salary, gender,start, department);
+			}
+		} catch (SQLException e) {
+			try {
+				connection.rollback();
+			} catch (SQLException exception) {
+				exception.printStackTrace();
+			}
+			throw new DatabaseException("Unable to add department details of  employee");
+		}
 		try {
 			connection.commit();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
 			if (connection != null) {
-				try {
-					connection.close();
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
+				connection.close();
 			}
 		}
 		return employee;
 	}
-
-	/**
+	 /**
 	 * Usecase8: Performing the cascading delete on the employee table
 	 * 
 	 * @param name
@@ -307,33 +312,4 @@ public class EmployeePayrollDB {
 			throw new DatabaseException("Unable to delete data");
 		}
 	}
-
-	/**
-	 * Usecase9: Adding the employee to the given department
-	 * 
-	 * @param name
-	 * @param gender
-	 * @param salary
-	 * @param start
-	 * @param department
-	 * @return
-	 * @throws DatabaseException
-	 */
-	public Employee addEmployeeToDepartment(String name, String gender, double salary, LocalDate start,
-			String department) throws DatabaseException {
-		Employee employee = addEmployeeToPayroll(name, gender, salary, start);
-		String sql = String.format(
-				"INSERT INTO department (employee_id,department_id, department_name) " + "VALUES ('%s','%s','%s')",
-				employee.id, 1, department);
-		try (Connection connection = this.getConnection()) {
-			Statement statement = connection.createStatement();
-			int rowAffected = statement.executeUpdate(sql);
-			if (rowAffected == 1) {
-				employee = new Employee(employee.id, name, salary, gender, start, department);
-			}
-		} catch (SQLException e) {
-			throw new DatabaseException("Unable to add department details of  employee");
-		}
-		return employee;
-	}
-}
+} 

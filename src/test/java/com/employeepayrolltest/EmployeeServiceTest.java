@@ -114,7 +114,8 @@ public class EmployeeServiceTest {
 	}
 
 	/**
-	 * Usecase7: To insert new Employee to the table
+	 * Usecase7: To insert new Employee to the table 
+	 * Usecase11: Refactored for the single transaction
 	 * 
 	 * @throws SQLException
 	 * @throws DatabaseException
@@ -123,7 +124,7 @@ public class EmployeeServiceTest {
 	public void givenNewEmployee_WhenAdded_ShouldSyncWithDB() throws SQLException, DatabaseException {
 		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
 		employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
-		employeePayrollService.addEmployeeToPayroll("Mark", "M", 5000000.0, LocalDate.now());
+		employeePayrollService.addEmployeeToPayrollAndDepartment("Mark", "M", 5000000.0, LocalDate.now(), "Marketing");
 		boolean result = employeePayrollService.checkEmployeeDataSync("Mark");
 		assertEquals(true, result);
 	}
@@ -142,7 +143,8 @@ public class EmployeeServiceTest {
 	}
 
 	/**
-	 * Usecase9: Inserting data according to new database structure
+	 * Usecase9: Inserting data according to new database structure Usecase11:
+	 * Usecase11: Refactored for the single transaction
 	 * 
 	 * @throws SQLException
 	 * @throws DatabaseException
@@ -151,7 +153,7 @@ public class EmployeeServiceTest {
 	public void givenNewEmployee_WhenAddedToPayroll_ShouldBeAddedToDepartment() throws SQLException, DatabaseException {
 		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
 		employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
-		employeePayrollService.addEmployeeToDepartment("Mark", "M", 5000000.0, LocalDate.now(), "Sales");
+		employeePayrollService.addEmployeeToPayrollAndDepartment("Mark", "M", 5000000.0, LocalDate.now(), "Sales");
 		boolean result = employeePayrollService.checkEmployeeDataSync("Mark");
 		assertEquals(true, result);
 	}
