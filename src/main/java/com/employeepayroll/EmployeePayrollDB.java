@@ -312,4 +312,21 @@ public class EmployeePayrollDB {
 			throw new DatabaseException("Unable to delete data");
 		}
 	}
+
+	/**
+	 * Usecase12: Remove employee from the table
+	 * 
+	 * @param id
+	 * @return
+	 * @throws DatabaseException
+	 */
+	public List<Employee> removeEmployeeFromCompany(int id) throws DatabaseException {
+		List<Employee> listOfEmployees = this.readData();
+		listOfEmployees.forEach(employee -> {
+			if (employee.id == id) {
+				employee.is_active = false;
+			}
+		});
+		return listOfEmployees;
+	}
 } 

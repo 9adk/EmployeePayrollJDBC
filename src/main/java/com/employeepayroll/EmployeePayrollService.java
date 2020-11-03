@@ -154,4 +154,9 @@ public class EmployeePayrollService {
 		 return readEmployeePayrollDBData(IOService.DB_IO);
 		
 	}
-}
+
+	public List<Employee> removeEmployeeFromPayroll(int id) throws DatabaseException {
+		List<Employee> activeList = null;
+		activeList = employeePayrollDB.removeEmployeeFromCompany(id);
+		return activeList;
+	}}
