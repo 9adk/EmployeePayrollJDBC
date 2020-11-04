@@ -176,6 +176,7 @@ public class EmployeeServiceTest {
 
 	/**
 	 * Usecase13: Adding multiple employees without threads
+	 * Usecase14: Adding multiple employee with threads
 	 * 
 	 * @throws DatabaseException
 	 */
@@ -193,7 +194,11 @@ public class EmployeeServiceTest {
 		employeePayrollService.addEmployeesToPayroll(Arrays.asList(arrayOfEmp));
 		Instant end = Instant.now();
 		System.out.println("Duration without Thread: " + Duration.between(start, end));
+		Instant threadStart = Instant.now();
+		employeePayrollService.addEmployeesToPayrollWithThreads(Arrays.asList(arrayOfEmp));
+		Instant threadEnd = Instant.now();
+		System.out.println("Duration with Thread: " + Duration.between(threadStart, threadEnd));
 		long result = employeePayrollService.countEntries(IOService.DB_IO);
-		assertEquals(7, result);
+		assertEquals(13, result);
 	}
 }
