@@ -4,7 +4,11 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.*;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class EmployeePayrollService {
+	private static final Logger LOG = LogManager.getLogger(EmployeePayrollDB.class); 
 	static Scanner consoleInput = new Scanner(System.in);
 
 	public enum IOService {
@@ -96,23 +100,7 @@ public class EmployeePayrollService {
 		}
 		return employeeList;
 	}
-
-	/**
-	 * Usecase3: Updating data in the table for "Deepika"
-	 * 
-	 * @param name
-	 * @param salary
-	 * @throws DatabaseException
-	 */
-	public void updateEmployeeSalary(String name, double salary) throws DatabaseException {
-		int result = employeePayrollDB.updateEmployeeData(name, salary);
-		if (result == 0)
-			return;
-		Employee employee = this.getEmployee(name);
-		if (employee != null)
-			employee.salary = salary;
-	}
-
+	
 	private Employee getEmployee(String name) {
 		Employee employee = this.employeeList.stream().filter(employeeData -> employeeData.name.equals(name))
 				.findFirst().orElse(null);
@@ -188,7 +176,7 @@ public class EmployeePayrollService {
 		employeeDataList.forEach(employee -> {
 			Runnable task = () -> {
 				employeeAdditionStatus.put(employee.hashCode(), false);
-				System.out.println("Employee Being Added: "+ Thread.currentThread().getName());
+				LOG.info("Employee Being Added: "+ Thread.currentThread().getName());
 				try {
 					this.addEmployeeToPayrollAndDepartment(employee.name,employee.gender,employee.salary,
 					                                       employee.start,employee.department);
@@ -196,7 +184,7 @@ public class EmployeePayrollService {
 					e.printStackTrace();
 				}
 				employeeAdditionStatus.put(employee.hashCode(), true);
-				System.out.println("Employee Added: "+ Thread.currentThread().getName());
+				LOG.info("Employee Added: "+ Thread.currentThread().getName());
 			};
 			Thread thread = new Thread(task, employee.name);
 			thread.start();
@@ -209,4 +197,55 @@ public class EmployeePayrollService {
 			}
 		}
 	}
+
+	public void updatePayroll(Map<String, Double> salaryMap) {
+		Map<Integer, Boolean> employeeAdditionStatus = new HashMap<Integer, Boolean>();
+		salaryMap.forEach((k,v) -> {
+			Runnable task = () -> {
+				employeeAdditionStatus.put(k.hashCode(), false);
+				LOG.info("Employee Being Added: "+ Thread.currentThread().getName());
+				try {
+					this.updatePayrollDB(k,v);
+				} catch (DatabaseException | SQLException e) {
+					e.printStackTrace();
+				} 
+				employeeAdditionStatus.put(k.hashCode(), true);
+				LOG.info("Employee Added: "+ Thread.currentThread().getName());
+			};
+			Thread thread = new Thread(task, k);
+			thread.start();
+		});
+		while(employeeAdditionStatus.containsValue(false)) {
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				e.printStackTrace();  
+			}
+		}
+	}
+	
+	private void updatePayrollDB(String name, Double salary) throws DatabaseException, SQLException {
+		int result = employeePayrollDB.updateEmployeePayrollData(name, salary);
+		if (result == 0)
+			return;
+		Employee employee = this.getEmployee(name);
+		if (employee != null)
+			employee.salary = salary;
+	}
+	
+	public boolean checkEmployeeListSync(List<String> nameList) throws DatabaseException {
+		List<Boolean> resultList = new ArrayList<>();
+		nameList.forEach(name -> {
+			List<Employee> employeeList;
+			try {
+				employeeList = employeePayrollDB.getEmployeePayrollData(name);
+				resultList.add(employeeList.get(0).equals(getEmployee(name)));
+			} catch (DatabaseException e) {}
+		});
+		if(resultList.contains(false)){
+			return false;
+		}
+		return true;
+	}
+	
 }

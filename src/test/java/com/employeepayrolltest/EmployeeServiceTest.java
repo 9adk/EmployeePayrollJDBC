@@ -28,22 +28,6 @@ public class EmployeeServiceTest {
 	}
 
 	/**
-	 * Usecase3,Usecase4: Update salary for a particular employees
-	 * 
-	 * @throws DatabaseException
-	 * @throws SQLException
-	 */
-	@Test
-	public void givenNewSalaryForEmployee_WhenUpdated_ShouldBeInSync() throws DatabaseException, SQLException {
-		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
-		List<Employee> employeePayrollData = employeePayrollService.readEmployeePayrollDBData(IOService.DB_IO);
-		employeePayrollService.updateEmployeeSalary("Deepika", 5000000);
-		employeePayrollService.readEmployeePayrollDBData(EmployeePayrollService.IOService.DB_IO);
-		boolean result = employeePayrollService.checkEmployeeDataSync("Deepika");
-		assertEquals(true, result);
-	}
-
-	/**
 	 * Usecase5: to retrieve employees in the particular dates
 	 * 
 	 * @throws DatabaseException
@@ -185,9 +169,9 @@ public class EmployeeServiceTest {
 	public void geiven6Employees_WhenAddedToDB_ShouldMatchEmployeeEntries() throws DatabaseException {
 		Employee[] arrayOfEmp = { new Employee(0, "Jeff Bezos", 100000.0, "M", LocalDate.now(), Arrays.asList("Sales")),
 				new Employee(0, "Bill Gates", 200000.0, "M", LocalDate.now(), Arrays.asList("Marketing")),
-				new Employee(0, "Mark ", 150000.0, "M", LocalDate.now(), Arrays.asList("Technical")),
+				new Employee(0, "Mark", 150000.0, "M", LocalDate.now(), Arrays.asList("Technical")),
 				new Employee(0, "Sundar", 400000.0, "M", LocalDate.now(), Arrays.asList("Sales,Technical")),
-				new Employee(0, "Mukesh ", 4500000.0, "M", LocalDate.now(), Arrays.asList("Sales")),
+				new Employee(0, "Mukesh", 4500000.0, "M", LocalDate.now(), Arrays.asList("Sales")),
 				new Employee(0, "Anil", 300000.0, "M", LocalDate.now(), Arrays.asList("Sales")) };
 		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
 		employeePayrollService.readEmployeePayrollDBData(IOService.DB_IO);
@@ -201,5 +185,24 @@ public class EmployeeServiceTest {
 		System.out.println("Duration with Thread: " + Duration.between(threadStart, threadEnd));
 		long result = employeePayrollService.countEntries(IOService.DB_IO);
 		assertEquals(13, result);
+	}
+	/**
+	 * Usecase17 : Updating the salary in table using the multithreading 
+	 * 
+	 * @throws DatabaseException
+	 */
+	@Test
+	public void geiven2Employees_WhenUpdatedSalary_ShouldSyncWithDB() throws DatabaseException {
+		Map<String, Double> salaryMap = new HashMap<>();
+		salaryMap.put("Bill Gates",700000.0);
+		salaryMap.put("Mukesh",800000.0);
+		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
+		employeePayrollService.readEmployeePayrollDBData(IOService.DB_IO);
+		Instant start = Instant.now();
+		employeePayrollService.updatePayroll(salaryMap);
+		Instant end = Instant.now();
+		System.out.println("Duration with Thread: " + Duration.between(start, end));
+		boolean result = employeePayrollService.checkEmployeeListSync(Arrays.asList("Bill Gates,Mukesh"));
+		assertEquals(true,result);
 	}
 }
