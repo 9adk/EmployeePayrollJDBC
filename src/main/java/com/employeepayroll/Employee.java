@@ -8,7 +8,7 @@ public class Employee {
 	public int id;
 	public double salary;
 	public String gender;
-	private LocalDate start;
+	public LocalDate start;
 	public List<String> department;
 	public boolean is_active = true;
 	public Employee(int id, String name, double salary) {

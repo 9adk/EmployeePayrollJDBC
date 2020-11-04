@@ -76,7 +76,9 @@ public class EmployeePayrollService {
 		if (ioService.equals(IOService.FILE_IO)) {
 			entries = new EmployeeFileService().countEntries();
 		}
-		System.out.println("No of Entries in File: " + entries);
+		else {
+			entries = employeeList.size();
+		}
 		return entries;
 	}
 
@@ -90,9 +92,9 @@ public class EmployeePayrollService {
 	 */
 	public List<Employee> readEmployeePayrollDBData(IOService ioService) throws DatabaseException {
 		if (ioService.equals(IOService.DB_IO)) {
-			this.employeeList = employeePayrollDB.readData();
+			employeeList = employeePayrollDB.readData();
 		}
-		return this.employeeList;
+		return employeeList;
 	}
 
 	/**
@@ -159,4 +161,19 @@ public class EmployeePayrollService {
 		List<Employee> activeList = null;
 		activeList = employeePayrollDB.removeEmployeeFromCompany(id);
 		return activeList;
+	}
+
+	public void addEmployeesToPayroll(List<Employee> employeeDataList) {
+		employeeDataList.forEach(employee -> {
+//			System.out.println("Employee Being added: "+employee.name);
+			try {
+				this.addEmployeeToPayrollAndDepartment(employee.name,employee.gender,employee.salary,employee.start,employee.department);
+			} catch (SQLException | DatabaseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+//			System.out.println("Employee added: "+employee.name);
+		});
+//		System.out.println(this.employeeList);
+		
 	}}

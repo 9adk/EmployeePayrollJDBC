@@ -280,9 +280,9 @@ public class EmployeePayrollDB {
 		}
 		try (Statement statement = connection.createStatement()) {
 			String sql = String.format(
-					"INSERT INTO department (employee_id,department_id, department_name) "
-							+ "VALUES ('%s','%s','%s')",
-					employeeId,1, department);
+					"INSERT INTO department (employee_id, department_name) "
+							+ "VALUES ('%s','%s')",
+					employeeId, department);
 			int rowAffected = statement.executeUpdate(sql);
 			if(rowAffected == 1) {
 				employee = new Employee(employeeId,name, salary, gender,start, department);

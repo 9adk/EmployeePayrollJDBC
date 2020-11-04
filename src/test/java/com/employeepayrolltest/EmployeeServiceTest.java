@@ -7,6 +7,8 @@ import com.employeepayroll.EmployeePayrollService.IOService;
 
 import static org.junit.Assert.assertEquals;
 import java.sql.SQLException;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -114,8 +116,8 @@ public class EmployeeServiceTest {
 	}
 
 	/**
-	 * Usecase7: To insert new Employee to the table 
-	 * Usecase11: Refactored for the single transaction
+	 * Usecase7: To insert new Employee to the table Usecase11: Refactored for the
+	 * single transaction
 	 * 
 	 * @throws SQLException
 	 * @throws DatabaseException
@@ -123,8 +125,9 @@ public class EmployeeServiceTest {
 	@Test
 	public void givenNewEmployee_WhenAdded_ShouldSyncWithDB() throws SQLException, DatabaseException {
 		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
-		employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
-		employeePayrollService.addEmployeeToPayrollAndDepartment("James", "M", 5000000.0, LocalDate.now(), Arrays.asList("Marketing"));
+		employeePayrollService.readEmployeePayrollDBData(IOService.DB_IO);
+		employeePayrollService.addEmployeeToPayrollAndDepartment("James", "M", 5000000.0, LocalDate.now(),
+				Arrays.asList("Marketing"));
 		boolean result = employeePayrollService.checkEmployeeDataSync("James");
 		assertEquals(true, result);
 	}
@@ -137,7 +140,7 @@ public class EmployeeServiceTest {
 	@Test
 	public void givenEmployeeDB_WhenAnEmployeeIsDeleted_ShouldSyncWithDB() throws DatabaseException {
 		EmployeePayrollService employeeService = new EmployeePayrollService();
-		employeeService.readEmployeePayrollData(IOService.DB_IO);
+		employeeService.readEmployeePayrollDBData(IOService.DB_IO);
 		List<Employee> list = employeeService.deleteEmployee("Mark");
 		assertEquals(3, list.size());
 	}
@@ -152,12 +155,13 @@ public class EmployeeServiceTest {
 	@Test
 	public void givenNewEmployee_WhenAddedToPayroll_ShouldBeAddedToDepartment() throws SQLException, DatabaseException {
 		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
-		employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
-		employeePayrollService.addEmployeeToPayrollAndDepartment("Mark", "M", 5000000.0, LocalDate.now(), Arrays.asList("Sales,Marketing"));
+		employeePayrollService.readEmployeePayrollDBData(IOService.DB_IO);
+		employeePayrollService.addEmployeeToPayrollAndDepartment("Mark", "M", 5000000.0, LocalDate.now(),
+				Arrays.asList("Sales,Marketing"));
 		boolean result = employeePayrollService.checkEmployeeDataSync("Mark");
 		assertEquals(true, result);
 	}
-	
+
 	/**
 	 * Usecase12: Remove employee from payroll
 	 * 
@@ -168,5 +172,28 @@ public class EmployeeServiceTest {
 		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
 		List<Employee> onlyActiveList = employeePayrollService.removeEmployeeFromPayroll(3);
 		assertEquals(3, onlyActiveList.size());
+	}
+
+	/**
+	 * Usecase13: Adding multiple employees without threads
+	 * 
+	 * @throws DatabaseException
+	 */
+	@Test
+	public void geiven6Employees_WhenAddedToDB_ShouldMatchEmployeeEntries() throws DatabaseException {
+		Employee[] arrayOfEmp = { new Employee(0, "Jeff Bezos", 100000.0, "M", LocalDate.now(), Arrays.asList("Sales")),
+				new Employee(0, "Bill Gates", 200000.0, "M", LocalDate.now(), Arrays.asList("Marketing")),
+				new Employee(0, "Mark ", 150000.0, "M", LocalDate.now(), Arrays.asList("Technical")),
+				new Employee(0, "Sundar", 400000.0, "M", LocalDate.now(), Arrays.asList("Sales,Technical")),
+				new Employee(0, "Mukesh ", 4500000.0, "M", LocalDate.now(), Arrays.asList("Sales")),
+				new Employee(0, "Anil", 300000.0, "M", LocalDate.now(), Arrays.asList("Sales")) };
+		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
+		employeePayrollService.readEmployeePayrollDBData(IOService.DB_IO);
+		Instant start = Instant.now();
+		employeePayrollService.addEmployeesToPayroll(Arrays.asList(arrayOfEmp));
+		Instant end = Instant.now();
+		System.out.println("Duration without Thread: " + Duration.between(start, end));
+		long result = employeePayrollService.countEntries(IOService.DB_IO);
+		assertEquals(7, result);
 	}
 }
