@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -160,18 +161,27 @@ public class EmployeePayrollDB {
 	 */
 	private List<Employee> getEmployeePayrollAndDeparmentData(String sql) throws DatabaseException {
 		List<Employee> employeePayrollList = new ArrayList<>();
+		Map<Integer, Employee> employeeMap = new HashMap<>();
 		try (Connection connection = this.getConnection()) {
 			Statement statement = connection.createStatement();
 			ResultSet resultSet = statement.executeQuery(sql);
 			while (resultSet.next()) {
 				int id = resultSet.getInt("id");
 				String name = resultSet.getString("name");
+				String gender = resultSet.getString("gender");
 				double salary = resultSet.getDouble("salary");
 				LocalDate start = resultSet.getDate("start").toLocalDate();
 				String department = resultSet.getString("department_name");
-				employeePayrollList.add(new Employee(id, name, salary, start,department));
+				if (employeeMap.containsKey(id)) {
+					employeeMap.get(id).department.add(department);
+				} else {
+					employeeMap.put(id, new Employee(id, name, salary,gender, start, Arrays.asList(department)));
+				}
 			}
-		} catch (SQLException e) {
+			employeePayrollList = employeeMap.values().stream().collect(Collectors.toList());
+
+		}
+		catch (SQLException e) {
 			e.printStackTrace();
 		}
 		return employeePayrollList;		
@@ -222,7 +232,7 @@ public class EmployeePayrollDB {
 	 * Usecase9: Adding the employee to the given department
 	 * Usecase11: Making all insertion as a single transaction
 	 */
-	 public Employee addEmployeeToPayrollAndDepartment(String name, String gender, double salary, LocalDate start,String department)
+	 public Employee addEmployeeToPayrollAndDepartment(String name, String gender, double salary, LocalDate start,List<String> department)
 			throws SQLException, DatabaseException {
 		int employeeId = -1;
 		Connection connection = null;

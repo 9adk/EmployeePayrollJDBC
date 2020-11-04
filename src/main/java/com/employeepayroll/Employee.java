@@ -1,14 +1,15 @@
 package com.employeepayroll;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public class Employee {
 	public String name;
 	public int id;
 	public double salary;
 	public String gender;
-	public String department;
 	private LocalDate start;
+	public List<String> department;
 	public boolean is_active = true;
 	public Employee(int id, String name, double salary) {
 		this.name = name;
@@ -25,30 +26,27 @@ public class Employee {
 		this.gender = gender;
 	}
 	
-	public Employee(int id, String name, double salary, String gender, LocalDate start,String department) {
+	public Employee(int id, String name, double salary, String gender, LocalDate start,List<String> department) {
 		this(id, name, salary, start, gender);
 		this.department = department;
 	}
 
-	public boolean equals(Object obj) {
-		if (this == obj)
+	public boolean equals(Object o) {
+		if (this == o) {
 			return true;
-		if (obj == null)
+		}
+
+		if (o == null || getClass() != o.getClass()) {
 			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Employee other = (Employee) obj;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
-			return false;
-		return true;
+		}
+
+		Employee that = (Employee) o;
+		return id == that.id && Double.compare(that.salary, salary) == 0 && name.equals(that.name);
 	}
 
 	@Override
 	public String toString() {
-		return "id=" + id + ", name=" + name + ", salary=" + salary;
+		return "id=" + id + ", name=" + name + ", Gender = "  + gender +  " Salary = " + salary + ", Start Date = " + start  + ", Status = " + ((is_active) ? "Active" : "Inactive");
 	}
 
 }

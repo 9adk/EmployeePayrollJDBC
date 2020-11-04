@@ -124,8 +124,8 @@ public class EmployeeServiceTest {
 	public void givenNewEmployee_WhenAdded_ShouldSyncWithDB() throws SQLException, DatabaseException {
 		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
 		employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
-		employeePayrollService.addEmployeeToPayrollAndDepartment("Mark", "M", 5000000.0, LocalDate.now(), "Marketing");
-		boolean result = employeePayrollService.checkEmployeeDataSync("Mark");
+		employeePayrollService.addEmployeeToPayrollAndDepartment("James", "M", 5000000.0, LocalDate.now(), Arrays.asList("Marketing"));
+		boolean result = employeePayrollService.checkEmployeeDataSync("James");
 		assertEquals(true, result);
 	}
 
@@ -153,7 +153,7 @@ public class EmployeeServiceTest {
 	public void givenNewEmployee_WhenAddedToPayroll_ShouldBeAddedToDepartment() throws SQLException, DatabaseException {
 		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
 		employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
-		employeePayrollService.addEmployeeToPayrollAndDepartment("Mark", "M", 5000000.0, LocalDate.now(), "Sales");
+		employeePayrollService.addEmployeeToPayrollAndDepartment("Mark", "M", 5000000.0, LocalDate.now(), Arrays.asList("Sales,Marketing"));
 		boolean result = employeePayrollService.checkEmployeeDataSync("Mark");
 		assertEquals(true, result);
 	}
@@ -164,7 +164,7 @@ public class EmployeeServiceTest {
 	 * @throws DatabaseException
 	 */
 	@Test
-	void givenEmployeeId_WhenRemoved_shouldReturnNumberOfActiveEmployees() throws DatabaseException {
+	public void givenEmployeeId_WhenRemoved_shouldReturnNumberOfActiveEmployees() throws DatabaseException {
 		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
 		List<Employee> onlyActiveList = employeePayrollService.removeEmployeeFromPayroll(3);
 		assertEquals(3, onlyActiveList.size());

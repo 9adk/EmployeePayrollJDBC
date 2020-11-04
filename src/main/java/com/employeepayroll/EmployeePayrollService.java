@@ -145,7 +145,7 @@ public class EmployeePayrollService {
 		return employeePayrollDB.getEmployeesByFunction("COUNT");
 	}
 
-	public void addEmployeeToPayrollAndDepartment(String name, String gender, double salary, LocalDate start,String department) throws SQLException, DatabaseException {
+	public void addEmployeeToPayrollAndDepartment(String name, String gender, double salary, LocalDate start,List<String> department) throws SQLException, DatabaseException {
 		this.employeeList.add(employeePayrollDB.addEmployeeToPayrollAndDepartment(name, gender, salary, start,department));
 	}
 
