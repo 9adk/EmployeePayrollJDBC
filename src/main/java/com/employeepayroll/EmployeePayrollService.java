@@ -8,7 +8,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class EmployeePayrollService {
-	private static final Logger LOG = LogManager.getLogger(EmployeePayrollDB.class); 
+	private static final Logger LOG = LogManager.getLogger(EmployeePayrollDB.class);
 	static Scanner consoleInput = new Scanner(System.in);
 
 	public enum IOService {
@@ -79,8 +79,7 @@ public class EmployeePayrollService {
 		long entries = 0;
 		if (ioService.equals(IOService.FILE_IO)) {
 			entries = new EmployeeFileService().countEntries();
-		}
-		else {
+		} else {
 			entries = employeeList.size();
 		}
 		return entries;
@@ -100,7 +99,7 @@ public class EmployeePayrollService {
 		}
 		return employeeList;
 	}
-	
+
 	public Employee getEmployee(String name) {
 		Employee employee = this.employeeList.stream().filter(employeeData -> employeeData.name.equals(name))
 				.findFirst().orElse(null);
@@ -113,15 +112,16 @@ public class EmployeePayrollService {
 	}
 
 	public List<Employee> getEmployeeForDateRange(LocalDate start, LocalDate end) throws DatabaseException {
-		return employeePayrollDB.getEmployeeForDateRange(start,end);
+		return employeePayrollDB.getEmployeeForDateRange(start, end);
 	}
 
 	public Map<String, Double> getSalaryAverageByGender() throws DatabaseException {
-			return employeePayrollDB.getEmployeesByFunction("AVG");
+		return employeePayrollDB.getEmployeesByFunction("AVG");
 	}
+
 	public Map<String, Double> getSalarySumByGender() throws DatabaseException {
 		return employeePayrollDB.getEmployeesByFunction("SUM");
-}
+	}
 
 	public Map<String, Double> getMinSalaryByGender() throws DatabaseException {
 		return employeePayrollDB.getEmployeesByFunction("MIN");
@@ -135,14 +135,16 @@ public class EmployeePayrollService {
 		return employeePayrollDB.getEmployeesByFunction("COUNT");
 	}
 
-	public void addEmployeeToPayrollAndDepartment(String name, String gender, double salary, LocalDate start,List<String> department) throws SQLException, DatabaseException {
-		this.employeeList.add(employeePayrollDB.addEmployeeToPayrollAndDepartment(name, gender, salary, start,department));
+	public void addEmployeeToPayrollAndDepartment(String name, String gender, double salary, LocalDate start,
+			List<String> department) throws SQLException, DatabaseException {
+		this.employeeList
+				.add(employeePayrollDB.addEmployeeToPayrollAndDepartment(name, gender, salary, start, department));
 	}
 
 	public List<Employee> deleteEmployee(String name) throws DatabaseException {
-		 employeePayrollDB.deleteEmployee(name);
-		 return readEmployeePayrollDBData(IOService.DB_IO);
-		
+		employeePayrollDB.deleteEmployee(name);
+		return readEmployeePayrollDBData(IOService.DB_IO);
+
 	}
 
 	public List<Employee> removeEmployeeFromPayroll(int id) throws DatabaseException {
@@ -153,22 +155,22 @@ public class EmployeePayrollService {
 
 	public void addEmployeesToPayroll(List<Employee> employeeDataList) {
 		employeeDataList.forEach(employee -> {
-			System.out.println("Employee Being added: "+employee.name);
+			System.out.println("Employee Being added: " + employee.name);
 			try {
-				this.addEmployeeToPayrollAndDepartment(employee.name,employee.gender,
-                                                       employee.salary,employee.start,employee.department);
+				this.addEmployeeToPayrollAndDepartment(employee.name, employee.gender, employee.salary, employee.start,
+						employee.department);
 			} catch (SQLException | DatabaseException e) {
 				e.printStackTrace();
 			}
-			System.out.println("Employee added: "+employee.name);
+			System.out.println("Employee added: " + employee.name);
 		});
 		System.out.println(this.employeeList);
-		
+
 	}
 
 	/**
-	 * Usecase14: Adding employees to table using threads in less time
-	 * Usecase15: Thread execution and synchronization 
+	 * Usecase14: Adding employees to table using threads in less time Usecase15:
+	 * Thread execution and synchronization
 	 * 
 	 * @param employeeDataList
 	 */
@@ -177,61 +179,62 @@ public class EmployeePayrollService {
 		employeeDataList.forEach(employee -> {
 			Runnable task = () -> {
 				employeeAdditionStatus.put(employee.hashCode(), false);
-				LOG.info("Employee Being Added: "+ Thread.currentThread().getName());
+				LOG.info("Employee Being Added: " + Thread.currentThread().getName());
 				try {
-					this.addEmployeeToPayrollAndDepartment(employee.name,employee.gender,employee.salary,
-					                                       employee.start,employee.department);
+					this.addEmployeeToPayrollAndDepartment(employee.name, employee.gender, employee.salary,
+							employee.start, employee.department);
 				} catch (SQLException | DatabaseException e) {
 					e.printStackTrace();
 				}
 				employeeAdditionStatus.put(employee.hashCode(), true);
-				LOG.info("Employee Added: "+ Thread.currentThread().getName());
+				LOG.info("Employee Added: " + Thread.currentThread().getName());
 			};
 			Thread thread = new Thread(task, employee.name);
 			thread.start();
 		});
-		while(employeeAdditionStatus.containsValue(false)) {
+		while (employeeAdditionStatus.containsValue(false)) {
 			try {
 				Thread.sleep(10);
 			} catch (InterruptedException e) {
-				e.printStackTrace();  
+				e.printStackTrace();
 			}
 		}
 	}
 
 	/**
-	 * Usecase17 : Updating the salary in table using the multithreading 
+	 * Usecase17 : Updating the salary in table using the multithreading
 	 * 
 	 * @param salaryMap
 	 */
-	public void updatePayroll(Map<String, Double> salaryMap,IOService ioService) {
+	public void updatePayroll(Map<String, Double> salaryMap, IOService ioService) {
 		Map<Integer, Boolean> employeeAdditionStatus = new HashMap<Integer, Boolean>();
-		salaryMap.forEach((k,v) -> {
+		salaryMap.forEach((k, v) -> {
 			Runnable task = () -> {
 				employeeAdditionStatus.put(k.hashCode(), false);
-				LOG.info("Employee Being Added: "+ Thread.currentThread().getName());
+				LOG.info("Employee Being Added: " + Thread.currentThread().getName());
 				try {
-					this.updatePayrollDB(k,v,ioService);
+					this.updatePayrollDB(k, v, ioService);
 				} catch (DatabaseException | SQLException e) {
 					e.printStackTrace();
-				} 
+				}
 				employeeAdditionStatus.put(k.hashCode(), true);
-				LOG.info("Employee Added: "+ Thread.currentThread().getName());
+				LOG.info("Employee Added: " + Thread.currentThread().getName());
 			};
 			Thread thread = new Thread(task, k);
 			thread.start();
 		});
-		while(employeeAdditionStatus.containsValue(false)) {
+		while (employeeAdditionStatus.containsValue(false)) {
 			try {
 				Thread.sleep(10);
 			} catch (InterruptedException e) {
-				e.printStackTrace();  
+				e.printStackTrace();
 			}
 		}
 	}
-	
-	public void updatePayrollDB(String name, Double salary,IOService ioService) throws DatabaseException, SQLException {
-		if(ioService.equals(IOService.DB_IO)) {	
+
+	public void updatePayrollDB(String name, Double salary, IOService ioService)
+			throws DatabaseException, SQLException {
+		if (ioService.equals(IOService.DB_IO)) {
 			int result = employeePayrollDB.updateEmployeePayrollData(name, salary);
 			if (result == 0)
 				return;
@@ -240,7 +243,7 @@ public class EmployeePayrollService {
 		if (employee != null)
 			employee.salary = salary;
 	}
-	
+
 	public boolean checkEmployeeListSync(List<String> nameList) throws DatabaseException {
 		List<Boolean> resultList = new ArrayList<>();
 		nameList.forEach(name -> {
@@ -248,9 +251,10 @@ public class EmployeePayrollService {
 			try {
 				employeeList = employeePayrollDB.getEmployeePayrollData(name);
 				resultList.add(employeeList.get(0).equals(getEmployee(name)));
-			} catch (DatabaseException e) {}
+			} catch (DatabaseException e) {
+			}
 		});
-		if(resultList.contains(false)){
+		if (resultList.contains(false)) {
 			return false;
 		}
 		return true;
@@ -264,12 +268,4 @@ public class EmployeePayrollService {
 	public void addEmployeeToPayroll(Employee employee) {
 		employeeList.add(employee);
 	}
-
-	public void deleteEmployee(String name, IOService ioService) {
-		if(ioService.equals(IOService.REST_IO)) {
-			Employee employee = this.getEmployee(name);
-			employeeList.remove(employee);
-		}
-	}
-	
 }
