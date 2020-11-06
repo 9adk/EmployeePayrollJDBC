@@ -19,38 +19,23 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class EmployeeServiceTest {
-	/**
-	 * Usecase2: Retrieve data from the employee table
-	 * 
-	 * @throws DatabaseException
-	 */
+
 	@Test
 	public void givenEmployeePayrollInDB_WhenRetrieved_ShouldMatchEmployeeCount() throws DatabaseException {
 		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
 		List<Employee> employeePayrollData = employeePayrollService.readEmployeePayrollDBData(IOService.DB_IO);
 		assertEquals(2, employeePayrollData.size());
 	}
-
-	/**
-	 * Usecase5: to retrieve employees in the particular dates
-	 * 
-	 * @throws DatabaseException
-	 */
+	
 	@Test
 	public void givenEmployeePayrollInDB_WhenRetrievedForDateRange_ShouldMatchEmployeeCount() throws DatabaseException {
 		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
-		List<Employee> employeePayrollData = employeePayrollService.readEmployeePayrollDBData(IOService.DB_IO);
+		employeePayrollService.readEmployeePayrollDBData(IOService.DB_IO);
 		List<Employee> resultList = employeePayrollService.getEmployeeForDateRange(LocalDate.of(2020, 01, 01),
 				LocalDate.of(2021, 01, 01));
 		assertEquals(2, resultList.size());
 	}
 
-	/**
-	 * Usecase6: to perform aggregate functions on the employee table
-	 * 
-	 * @throws DatabaseException
-	 */
-	@SuppressWarnings("unlikely-arg-type")
 	@Test
 	public void givenEmployeePayrollInDB_WhenRetrievedForAverage_ShouldMatchedAverageSalaryForGender()
 			throws DatabaseException {
@@ -103,13 +88,7 @@ public class EmployeeServiceTest {
 
 	}
 
-	/**
-	 * Usecase7: To insert new Employee to the table Usecase11: Refactored for the
-	 * single transaction
-	 * 
-	 * @throws SQLException
-	 * @throws DatabaseException
-	 */
+	
 	@Test
 	public void givenNewEmployee_WhenAdded_ShouldSyncWithDB() throws SQLException, DatabaseException {
 		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
@@ -120,11 +99,7 @@ public class EmployeeServiceTest {
 		assertEquals(true, result);
 	}
 
-	/**
-	 * Usecase8: performing the cascading delete operation on database
-	 * 
-	 * @throws DatabaseException
-	 */
+	
 	@Test
 	public void givenEmployeeDB_WhenAnEmployeeIsDeleted_ShouldSyncWithDB() throws DatabaseException {
 		EmployeePayrollService employeeService = new EmployeePayrollService();
@@ -133,13 +108,7 @@ public class EmployeeServiceTest {
 		assertEquals(3, list.size());
 	}
 
-	/**
-	 * Usecase9: Inserting data according to new database structure Usecase11:
-	 * Usecase11: Refactored for the single transaction
-	 * 
-	 * @throws SQLException
-	 * @throws DatabaseException
-	 */
+	
 	@Test
 	public void givenNewEmployee_WhenAddedToPayroll_ShouldBeAddedToDepartment() throws SQLException, DatabaseException {
 		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
@@ -149,12 +118,7 @@ public class EmployeeServiceTest {
 		boolean result = employeePayrollService.checkEmployeeDataSync("Mark");
 		assertEquals(true, result);
 	}
-
-	/**
-	 * Usecase12: Remove employee from payroll
-	 * 
-	 * @throws DatabaseException
-	 */
+	
 	@Test
 	public void givenEmployeeId_WhenRemoved_shouldReturnNumberOfActiveEmployees() throws DatabaseException {
 		EmployeePayrollService employeePayrollService = new EmployeePayrollService();
@@ -162,13 +126,6 @@ public class EmployeeServiceTest {
 		assertEquals(3, onlyActiveList.size());
 	}
 
-	/**
-	 * Usecase13: Adding multiple employees without threads Usecase14: Adding
-	 * multiple employee with threads Usecase15: Thread execution and
-	 * synchronization
-	 * 
-	 * @throws DatabaseException
-	 */
 	@Test
 	public void geiven6Employees_WhenAddedToDB_ShouldMatchEmployeeEntries() throws DatabaseException {
 		Employee[] arrayOfEmp = { new Employee(0, "Jeff Bezos", 100000.0, "M", LocalDate.now(), Arrays.asList("Sales")),
@@ -191,11 +148,6 @@ public class EmployeeServiceTest {
 		assertEquals(13, result);
 	}
 
-	/**
-	 * Usecase17 : Updating the salary in table using the multithreading
-	 * 
-	 * @throws DatabaseException
-	 */
 	@Test
 	public void geiven2Employees_WhenUpdatedSalary_ShouldSyncWithDB() throws DatabaseException {
 		Map<String, Double> salaryMap = new HashMap<>();
@@ -210,7 +162,7 @@ public class EmployeeServiceTest {
 		boolean result = employeePayrollService.checkEmployeeListSync(Arrays.asList("Mukesh"));
 		assertEquals(true, result);
 	}
-
+	
 	@Before
 	public void setup() {
 		RestAssured.baseURI = "http://localhost";
@@ -280,4 +232,19 @@ public class EmployeeServiceTest {
 		long count = eService.countEntries(IOService.REST_IO);
 		assertEquals(8, count);
 	}
+	@Test 
+	public void givenNewSalaryForEmployee_WhenUpdated_ShouldMatch200Request() throws DatabaseException, SQLException {
+		Employee[] arrayOfEmp = getEmployeeList();
+		EmployeePayrollService eService = new EmployeePayrollService(Arrays.asList(arrayOfEmp));
+		eService.updatePayrollDB("Mukesh Ambani",8000000.0,IOService.REST_IO);
+		Employee employee = eService.getEmployee("Mukesh Ambani");
+		String empJson = new Gson().toJson(employee);
+		RequestSpecification request = RestAssured.given();
+		request.header("Content-Type","application/json");
+		request.body(empJson);
+		Response response = request.put("/employees/"+employee.id);
+		int statusCode = response.getStatusCode();
+		assertEquals(200,statusCode);			
+	}
+
 }
