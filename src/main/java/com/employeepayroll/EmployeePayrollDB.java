@@ -192,40 +192,40 @@ public class EmployeePayrollDB {
 	}
 	
 	
-
+	
 	/**
 	 * Usecase7: Inserting new employee into the table using JDBC transaction
 	 * Usecase8: Inserting employee data in employee as well as payroll table
 	 * Usecase9: Adding the employee to the given department
 	 * Usecase11: Making all insertion as a single transaction
 	 */
-	 public Employee addEmployeeToPayrollAndDepartment(String name, String gender, double salary, LocalDate start,List<String> department)
-			throws SQLException, DatabaseException {
-		int employeeId = -1;
-		Connection connection = null;
+	public Employee addEmployeeToPayrollAndDepartment(String name, String gender, double salary, LocalDate start,List<String> department)throws SQLException, DatabaseException {
 		Employee employee = null;
+		int employeeId = -1;	
+		Connection connection = null;
 		try {
-			connection = this.getConnection();
+			connection  = this.getConnection();
 			connection.setAutoCommit(false);
-		} catch (SQLException e) {
+		} 
+		catch (SQLException | DatabaseException e) {
 			e.printStackTrace();
 		}
 		try (Statement statement = connection.createStatement()) {
 			String sql = String.format("INSERT INTO employee_payroll_service (name, gender, salary, start) "
-					+ "VALUES ('%s','%s','%s','%s')", name, gender, salary, Date.valueOf(start));
+                                        + "VALUES ('%s','%s','%s','%s')", name, gender, salary, Date.valueOf(start));
 			int rowAffected = statement.executeUpdate(sql, statement.RETURN_GENERATED_KEYS);
 			if (rowAffected == 1) {
 				ResultSet resultSet = statement.getGeneratedKeys();
 				if (resultSet.next())
 					employeeId = resultSet.getInt(1);
 			}
-		} catch (SQLException e) {
+		} 
+		catch (SQLException e) {
 			try {
 				connection.rollback();
 			} catch (SQLException exception) {
 				exception.printStackTrace();
 			}
-			throw new DatabaseException("Unable to add new employee");
 		}
 		try (Statement statement = connection.createStatement()) {
 			double deductions = salary * 0.2;
@@ -273,7 +273,8 @@ public class EmployeePayrollDB {
 		}
 		return employee;
 	}
-	 /**
+	 
+	/**
 	 * Usecase8: Performing the cascading delete on the employee table
 	 * 
 	 * @param name

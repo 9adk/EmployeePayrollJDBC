@@ -20,7 +20,7 @@ public class EmployeePayrollService {
 
 	public EmployeePayrollService(List<Employee> list) {
 		this();
-		this.employeeList = list;
+		this.employeeList = new ArrayList<>(list);
 	}
 
 	public EmployeePayrollService() {
@@ -101,7 +101,7 @@ public class EmployeePayrollService {
 		return employeeList;
 	}
 	
-	private Employee getEmployee(String name) {
+	public Employee getEmployee(String name) {
 		Employee employee = this.employeeList.stream().filter(employeeData -> employeeData.name.equals(name))
 				.findFirst().orElse(null);
 		return employee;
@@ -168,6 +168,7 @@ public class EmployeePayrollService {
 
 	/**
 	 * Usecase14: Adding employees to table using threads in less time
+	 * Usecase15: Thread execution and synchronization 
 	 * 
 	 * @param employeeDataList
 	 */
@@ -198,14 +199,19 @@ public class EmployeePayrollService {
 		}
 	}
 
-	public void updatePayroll(Map<String, Double> salaryMap) {
+	/**
+	 * Usecase17 : Updating the salary in table using the multithreading 
+	 * 
+	 * @param salaryMap
+	 */
+	public void updatePayroll(Map<String, Double> salaryMap,IOService ioService) {
 		Map<Integer, Boolean> employeeAdditionStatus = new HashMap<Integer, Boolean>();
 		salaryMap.forEach((k,v) -> {
 			Runnable task = () -> {
 				employeeAdditionStatus.put(k.hashCode(), false);
 				LOG.info("Employee Being Added: "+ Thread.currentThread().getName());
 				try {
-					this.updatePayrollDB(k,v);
+					this.updatePayrollDB(k,v,ioService);
 				} catch (DatabaseException | SQLException e) {
 					e.printStackTrace();
 				} 
@@ -224,10 +230,12 @@ public class EmployeePayrollService {
 		}
 	}
 	
-	private void updatePayrollDB(String name, Double salary) throws DatabaseException, SQLException {
-		int result = employeePayrollDB.updateEmployeePayrollData(name, salary);
-		if (result == 0)
-			return;
+	public void updatePayrollDB(String name, Double salary,IOService ioService) throws DatabaseException, SQLException {
+		if(ioService.equals(IOService.DB_IO)) {	
+			int result = employeePayrollDB.updateEmployeePayrollData(name, salary);
+			if (result == 0)
+				return;
+		}
 		Employee employee = this.getEmployee(name);
 		if (employee != null)
 			employee.salary = salary;
@@ -246,6 +254,22 @@ public class EmployeePayrollService {
 			return false;
 		}
 		return true;
+	}
+
+	/**
+	 * Json Usecase1: adding the employee to cache
+	 * 
+	 * @param employee
+	 */
+	public void addEmployeeToPayroll(Employee employee) {
+		employeeList.add(employee);
+	}
+
+	public void deleteEmployee(String name, IOService ioService) {
+		if(ioService.equals(IOService.REST_IO)) {
+			Employee employee = this.getEmployee(name);
+			employeeList.remove(employee);
+		}
 	}
 	
 }
